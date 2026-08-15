@@ -39,31 +39,51 @@ still vulnerable. Reconstruct what VESSEL-7 did, do it yourself, and open the va
 - Guess the treasury's private key. It was generated once, used to build genesis, and discarded
   before the node ever started — it is not part of the solve path.
 
-## Running it
+## What's in this challenge
 
-```bash
-cd core && npm install && npm run build && cd ..
-cd server && npm install && npm run build
-node dist/server.js       # listens on :8600 by default (PORT env var to change)
+- `core/` — the SGK protocol library (crypto, addresses, UTXO transactions, blocks), untouched
+- `server/` — the compromised node (ships to players)
+- `web/` — a read-only SOC monitoring dashboard for the node (deploy to Vercel; optional —
+  the challenge is fully solvable via API/scripts alone, this is just a nicer way to watch the
+  chain state and check balances/vault status without curl)
+- `solve/solve.mjs` — reference exploit (Node.js)
+- `solve/solver.py` — independent Python reference exploit — reimplements the address/signing
+  wire format from scratch (does not import `core/`), included specifically to prove the format
+  is genuinely documented and reproducible rather than something only the JS client gets right
+- `VULNERABILITY.patch` — a real, `git apply`-able unified diff of the actual vulnerable code
+  change (`git format-patch` output, not a narrative reconstruction)
+- `LEAKED_PATCH_NOTES.md` / `VAULT_SCHEMATICS.md` — the in-fiction discovery hints given to players
+- `render.yaml` — Render blueprint for the node
+
+## Deploying
+
+**Node (Render, required):**
 ```
-
-Deploys the same way as the main SGK project — push to a host that can run a persistent Node
-process (Render free tier works fine for a single-instance CTF challenge; see the main project's
-`docs/LIMITATIONS.md` for the same spin-down/no-persistent-disk caveats, which don't affect a
-challenge instance you don't need to survive redeploys).
-
-**Before publishing to players:** delete or exclude `server/_author/` (contains the flag-seeding
-script) and `solve/` (contains the reference solution) from whatever you actually hand out —
-players get the server, `LEAKED_PATCH_NOTES.md`, and `VAULT_SCHEMATICS.md` only.
-
-## Reference solution
-
-`solve/solve.mjs` — verified working end-to-end against a live instance (recon → forge → submit
-to `/api/tx/v2` → wait for confirmation → unlock vault → decrypt). Run with:
-
-```bash
-cd solve && npm install && GL_NODE_URL=http://localhost:8600 node solve.mjs
+Build Command: npm install --prefix core && npm run build --prefix core && npm install --prefix server && npm run build --prefix server
+Start Command: node server/dist/server.js
 ```
+Matches `render.yaml` if deploying via Blueprint.
+
+**Dashboard (Vercel, optional):**
+- Root Directory: `web`
+- Env var: `NEXT_PUBLIC_GL_NODE_URL` = your Render node's URL
+- `web/vercel.json` handles building `core/` before Next.js automatically — no build command
+  overrides needed.
+
+
+## Vault unlock, and closing a bypass I found during testing
+
+`POST /api/vault/unlock` now requires a signature proving ownership of the balance-holding
+address (`sign("unlock-vault:" + address)`), not just a balance check. Without this, the treasury
+address itself — which starts at exactly the threshold amount by construction — could be handed
+straight to the unlock endpoint with zero exploitation. `GET /api/vault/status` is the safe,
+proof-free variant the dashboard uses to show sealed/unsealed state without leaking the ciphertext.
+
+Relatedly: mining rewards are paid to a separate `MINING_REWARD_ADDRESS`, never to the treasury.
+If they went to the treasury, its balance would climb past the threshold on its own from block
+rewards alone, defeating the challenge without anyone touching `/api/tx/v2`. Both of these were
+real bugs caught by actually running the exploit end-to-end during development, not just reasoned
+about — worth verifying again if you change the reward schedule or threshold amount.
 
 ## Design notes (for the challenge author, not players)
 

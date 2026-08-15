@@ -9,6 +9,13 @@ export const GENESIS_TIMESTAMP = 1750000000;
 export const TREASURY_ADDRESS = "mgepXo2ExKEhhYhvpqNcYDnkqGn1w1o8Ag";
 export const TREASURY_AMOUNT = 5_000_000n * 100_000_000n; // 5,000,000 SGK
 
+// Mining rewards must NEVER go to the treasury address — that address's
+// balance is the vault's unlock condition, so if it kept collecting its own
+// block rewards it would eventually cross the threshold on its own, with no
+// exploit required. Rewards go to this separate address instead; its key
+// was generated once and discarded, same as the treasury's.
+export const MINING_REWARD_ADDRESS = "mjWngg4mExp1RFsFTPAXJpwzK6ZB67f878";
+
 // hex(iv[12] || authTag[16] || ciphertext) — AES-256-GCM
 export const VAULT_CIPHERTEXT_HEX = "623f91785a0dde39bd134ba9ace32ba7dffc12b39833f3f062fe64b5cdb9379abdcc7b13e3c8ae3e46022f7ad4d1e559ba939c12a900b30feca981b5ad4581eb4e867fab82714b90113ae2b1879db5c5bf";
 

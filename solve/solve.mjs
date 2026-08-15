@@ -75,11 +75,19 @@ async function main() {
   if (balance < BigInt(briefing.treasuryAmount)) throw new Error("sweep did not confirm in time");
   console.log("[+] Treasury fully drained into our address.");
 
-  console.log("[*] Unlocking the vault...");
+  console.log("[*] Proving ownership of our address (signed challenge) and unlocking the vault...");
+  const challengeMessage = new TextEncoder().encode(`unlock-vault:${attackerAddress}`);
+  const { sign } = await import("@sgk/core");
+  const ownershipSig = bytesToHex(sign(challengeMessage, attacker.privateKey));
+
   const vaultRes = await fetch(`${NODE_URL}/api/vault/unlock`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ address: attackerAddress }),
+    body: JSON.stringify({
+      address: attackerAddress,
+      publicKey: bytesToHex(attacker.publicKey),
+      signature: ownershipSig,
+    }),
   });
   const vaultData = await vaultRes.json();
   if (!vaultRes.ok) throw new Error(`vault unlock failed: ${JSON.stringify(vaultData)}`);

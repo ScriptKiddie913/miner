@@ -38,6 +38,9 @@ import {
   transactionFee,
   isValidAddress,
   bytesToHex,
+  hexToBytes,
+  verify,
+  pubKeyMatchesAddress,
   MAX_SUPPLY,
 } from "@sgk/core";
 import * as cfg from "./config.js";
@@ -152,7 +155,7 @@ function attemptMine(maxIterations: number) {
   let fees = 0n;
   for (const tx of pending) fees += transactionFee(tx, utxoSet);
 
-  const coinbase = buildCoinbaseTransaction(h, getBlockReward(h) + fees, cfg.TREASURY_ADDRESS);
+  const coinbase = buildCoinbaseTransaction(h, getBlockReward(h) + fees, cfg.MINING_REWARD_ADDRESS);
   const txs = [coinbase, ...pending];
 
   const header = mineBlock(
@@ -219,6 +222,19 @@ app.get("/api/blocks/latest", (req, res) => {
   );
 });
 
+app.get("/api/block/:hash", (req, res) => {
+  const block = blocks.find((b) => blockHash(b.header) === req.params.hash);
+  if (!block) return res.status(404).json({ error: "block not found" });
+  res.json({
+    hash: blockHash(block.header),
+    header: block.header,
+    transactions: block.transactions.map((tx) => ({
+      ...tx,
+      outputs: tx.outputs.map((o) => ({ ...o, amount: o.amount.toString() })),
+    })),
+  });
+});
+
 app.get("/api/address/:address", (req, res) => {
   if (!isValidAddress(req.params.address)) return res.status(400).json({ error: "invalid address" });
   const balance = utxoSet.balanceOf(req.params.address);
@@ -271,11 +287,50 @@ app.post("/api/tx/v2", (req, res) => {
   }
 });
 
-app.post("/api/vault/unlock", (req, res) => {
-  const address = req.body?.address;
+// Informational only — reports whether an address's balance meets the vault
+// threshold, without requiring proof of ownership or returning the
+// ciphertext. Safe for the public dashboard to call for any address,
+// including the treasury's own (which starts at exactly the threshold and
+// would otherwise make the real unlock endpoint trivially bypassable if it
+// worked off balance alone).
+app.get("/api/vault/status", (req, res) => {
+  const address = req.query.address;
   if (typeof address !== "string" || !isValidAddress(address)) {
     return res.status(400).json({ error: "invalid address" });
   }
+  const balance = utxoSet.balanceOf(address);
+  res.json({
+    sealed: balance < cfg.TREASURY_AMOUNT,
+    required: cfg.TREASURY_AMOUNT.toString(),
+    current: balance.toString(),
+  });
+});
+
+// The real unlock: requires the caller to PROVE they hold the private key
+// for the balance-holding address, by signing a fixed challenge message.
+// This closes off "just ask for the treasury address's own balance" as a
+// free win, since nobody holds the treasury's private key (it was
+// generated once at genesis and discarded).
+app.post("/api/vault/unlock", (req, res) => {
+  const { address, publicKey, signature } = req.body ?? {};
+  if (typeof address !== "string" || !isValidAddress(address)) {
+    return res.status(400).json({ error: "invalid address" });
+  }
+  if (typeof publicKey !== "string" || typeof signature !== "string") {
+    return res.status(400).json({ error: "missing publicKey/signature proof of ownership" });
+  }
+  if (!pubKeyMatchesAddress(publicKey, address)) {
+    return res.status(403).json({ error: "publicKey does not match address" });
+  }
+  const message = new TextEncoder().encode(`unlock-vault:${address}`);
+  let sigValid = false;
+  try {
+    sigValid = verify(hexToBytes(signature), message, hexToBytes(publicKey));
+  } catch {
+    sigValid = false;
+  }
+  if (!sigValid) return res.status(403).json({ error: "invalid ownership signature" });
+
   const balance = utxoSet.balanceOf(address);
   if (balance < cfg.TREASURY_AMOUNT) {
     return res.status(403).json({
