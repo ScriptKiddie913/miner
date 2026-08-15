@@ -1,0 +1,15 @@
+{
+  "name": "sgk-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/core",
+    "server",
+    "cli-wallet"
+  ],
+  "scripts": {
+    "build:core": "npm run build -w packages/core",
+    "test:core": "npm run test -w packages/core",
+    "start:server": "npm run start -w server",
+    "dev:server": "npm run dev -w server"
+  }
+}

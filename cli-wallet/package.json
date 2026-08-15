@@ -1,0 +1,16 @@
+{
+  "name": "sgk-wallet",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": { "sgk-wallet": "./dist/wallet.js" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@sgk/core": "file:../packages/core"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.0",
+    "typescript": "^5.5.4"
+  }
+}

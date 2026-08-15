@@ -1,10 +1,46 @@
+# Render blueprint. In the Render dashboard: New -> Blueprint -> point at
+# this repo, and Render will read this file to configure the service.
+#
+# FREE-TIER REALITY CHECK (read this before deploying):
+# - Free web services spin down after 15 minutes with no inbound HTTP
+#   traffic, and take ~30-60s to wake back up on the next request.
+# - There is NO persistent disk on the free plan. The filesystem survives
+#   while the instance stays warm (including across the spin-down/wake
+#   cycle) but is WIPED on every redeploy. If you redeploy, your chain
+#   restarts from genesis.
+# - For state that must survive redeploys, upgrade to a paid instance with
+#   a persistent disk, or swap server/src/storage.ts for an external store.
+#
+# This is a deliberate, honest tradeoff to keep the whole stack at $0 to
+# run. It's genuinely fine for a devnet/testnet you and friends poke at;
+# it is not "production infrastructure."
+
 services:
   - type: web
-    name: ghost-ledger
+    name: sgk-node
     runtime: node
     plan: free
-    buildCommand: "npm install --prefix core && npm run build --prefix core && npm install --prefix server && npm run build --prefix server"
-    startCommand: "node server/dist/server.js"
+    buildCommand: "npm install --workspaces=false --prefix packages/core && npm run build --prefix packages/core && npm install --prefix server && npm run build --prefix server"
+    startCommand: "npm run start --prefix server"
     envVars:
-      - key: PORT
-        value: "8600"
+      - key: SGK_NETWORK
+        value: sgk-devnet
+      - key: SGK_DIFFICULTY
+        value: "18"
+      - key: SGK_AUTO_MINE
+        value: "true"
+      - key: SGK_DATA_DIR
+        value: ./data
+      - key: SGK_FAUCET_ENABLED
+        value: "true"
+      - key: SGK_FAUCET_AMOUNT
+        value: "1000000000"
+      - key: SGK_FAUCET_COOLDOWN_SECONDS
+        value: "3600"
+      - key: SGK_GENESIS_TIMESTAMP
+        value: "1735689600"
+      # Optional: set this to your own address so mining rewards go to a
+      # wallet you actually control, instead of the auto-generated
+      # devnet convenience wallet.
+      # - key: SGK_MINER_ADDRESS
+      #   value: sgk1...
