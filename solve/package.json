@@ -1,0 +1,8 @@
+{
+  "name": "ghost-ledger-solve",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@sgk/core": "file:../core"
+  }
+}

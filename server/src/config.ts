@@ -1,37 +1,16 @@
-import type { Network } from "@sgk/core";
+// Filled in by running `npm run seed` (see _author/seed-vault.ts) once, then
+// hardcoded here. The flag plaintext itself never appears in this file or
+// anywhere in the deployed server — only the AES-GCM ciphertext does.
 
-function requireEnvOrDefault(name: string, fallback: string): string {
-  return process.env[name] ?? fallback;
-}
+export const NETWORK_ID = "sgk-testnet";
+export const DIFFICULTY = 14;
+export const GENESIS_TIMESTAMP = 1750000000;
 
-export const NETWORK = (requireEnvOrDefault("SGK_NETWORK", "sgk-devnet") as string);
+export const TREASURY_ADDRESS = "mgepXo2ExKEhhYhvpqNcYDnkqGn1w1o8Ag";
+export const TREASURY_AMOUNT = 5_000_000n * 100_000_000n; // 5,000,000 SGK
 
-export const NETWORK_MODE: Network =
-  NETWORK === "sgk-mainnet" ? "mainnet" : NETWORK === "sgk-testnet" ? "testnet" : "devnet";
+// hex(iv[12] || authTag[16] || ciphertext) — AES-256-GCM
+export const VAULT_CIPHERTEXT_HEX = "623f91785a0dde39bd134ba9ace32ba7dffc12b39833f3f062fe64b5cdb9379abdcc7b13e3c8ae3e46022f7ad4d1e559ba939c12a900b30feca981b5ad4581eb4e867fab82714b90113ae2b1879db5c5bf";
 
-export const PORT = Number(requireEnvOrDefault("PORT", "8545"));
-
-export const DATA_DIR = requireEnvOrDefault("SGK_DATA_DIR", "./data");
-
-export const DIFFICULTY = Number(requireEnvOrDefault("SGK_DIFFICULTY", "16"));
-
-export const MAX_TIMESTAMP_DRIFT_SECONDS = 7200;
-
-export const AUTO_MINE = requireEnvOrDefault("SGK_AUTO_MINE", "true") === "true";
-
-// Fixed genesis timestamp so the genesis block is reproducible from config
-// alone (never Date.now()).
-export const GENESIS_TIMESTAMP = Number(requireEnvOrDefault("SGK_GENESIS_TIMESTAMP", "1735689600")); // 2025-01-01T00:00:00Z
-
-// Optional single initial allocation address (e.g. your own wallet, so the
-// devnet/testnet isn't launched with zero spendable coins). Leave unset for
-// a genesis block with no pre-mine — all coins then come from mining.
-export const GENESIS_ALLOCATION_ADDRESS = process.env.SGK_GENESIS_ALLOCATION_ADDRESS ?? null;
-export const GENESIS_ALLOCATION_AMOUNT = BigInt(
-  requireEnvOrDefault("SGK_GENESIS_ALLOCATION_AMOUNT", "0")
-);
-
-export const FAUCET_ENABLED =
-  requireEnvOrDefault("SGK_FAUCET_ENABLED", "true") === "true" && NETWORK !== "sgk-mainnet";
-export const FAUCET_AMOUNT = BigInt(requireEnvOrDefault("SGK_FAUCET_AMOUNT", "1000000000")); // 10 SGK
-export const FAUCET_COOLDOWN_SECONDS = Number(requireEnvOrDefault("SGK_FAUCET_COOLDOWN_SECONDS", "3600"));
+export const PORT = Number(process.env.PORT ?? 8600);
+export const DATA_DIR = process.env.GL_DATA_DIR ?? "./data";
