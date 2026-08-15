@@ -2,8 +2,9 @@ import { api } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
-export default async function BlockDetailPage({ params }: { params: { hash: string } }) {
-  const block = await api.block(params.hash);
+export default async function BlockDetailPage({ params }: { params: Promise<{ hash: string }> }) {
+  const { hash } = await params;
+  const block = await api.block(hash);
   return (
     <div>
       <div className="section-title">Block Header</div>

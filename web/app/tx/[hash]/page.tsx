@@ -2,8 +2,9 @@ import { api } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
-export default async function TxDetailPage({ params }: { params: { hash: string } }) {
-  const found = await api.transaction(params.hash);
+export default async function TxDetailPage({ params }: { params: Promise<{ hash: string }> }) {
+  const { hash } = await params;
+  const found = await api.transaction(hash);
   const { tx, blockHash, height } = found;
 
   return (
@@ -11,7 +12,7 @@ export default async function TxDetailPage({ params }: { params: { hash: string 
       <div className="section-title">Transaction</div>
       <div className="panel">
         <div className="stat-label">Transaction ID</div>
-        <div className="hash" style={{ marginBottom: 16 }}>{params.hash}</div>
+        <div className="hash" style={{ marginBottom: 16 }}>{hash}</div>
 
         <div className="stat-label">Included in block</div>
         <div className="hash" style={{ marginBottom: 16 }}>

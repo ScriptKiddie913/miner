@@ -2,8 +2,9 @@ import { api, formatSgk } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
-export default async function AddressPage({ params }: { params: { address: string } }) {
-  const info = await api.address(params.address);
+export default async function AddressPage({ params }: { params: Promise<{ address: string }> }) {
+  const { address } = await params;
+  const info = await api.address(address);
   return (
     <div>
       <div className="section-title">Address</div>
