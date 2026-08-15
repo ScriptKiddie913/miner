@@ -1,0 +1,21 @@
+{
+  "name": "@sgk/core",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "pretest": "tsc --target ES2022 --module ES2022 --moduleResolution Bundler --outDir .test-build --rootDir src src/*.ts",
+    "test": "node --test .test-build/*.test.js",
+    "posttest": "rm -rf .test-build"
+  },
+  "dependencies": {
+    "@noble/ed25519": "^2.1.0",
+    "@noble/hashes": "^1.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "typescript": "^5.5.4"
+  }
+}
