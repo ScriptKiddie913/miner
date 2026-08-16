@@ -46,6 +46,9 @@ still vulnerable. Reconstruct what VESSEL-7 did, do it yourself, and open the va
 - `web/` — a read-only SOC monitoring dashboard for the node (deploy to Vercel; optional —
   the challenge is fully solvable via API/scripts alone, this is just a nicer way to watch the
   chain state and check balances/vault status without curl)
+- `SOLVE_PATH.md` — the manual, human walkthrough: what a player actually types and why, step by
+  step, without pre-built tooling. Read this if you want to solve it yourself before checking the
+  reference scripts, or to gauge whether the difficulty curve is right for your event.
 - `solve/solve.mjs` — reference exploit (Node.js)
 - `solve/solver.py` — independent Python reference exploit — reimplements the address/signing
   wire format from scratch (does not import `core/`), included specifically to prove the format
