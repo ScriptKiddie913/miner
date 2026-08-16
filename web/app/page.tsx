@@ -1,4 +1,5 @@
 import { api, formatSgk } from "@/lib/api";
+import PulseTrace from "./PulseTrace";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,7 @@ export default async function OverviewPage() {
   if (error) {
     return (
       <div className="warn">
-        Could not reach the compromised node at <code>{api.nodeUrl}</code>: {error}
+        Uplink failed — could not reach the node at <code>{api.nodeUrl}</code>: {error}
         <br />
         Set <code>NEXT_PUBLIC_GL_NODE_URL</code> to your deployed Render node URL.
       </div>
@@ -29,41 +30,54 @@ export default async function OverviewPage() {
 
   return (
     <div>
-      <div className="section-title">Incident Briefing</div>
-      <div className="panel prose" style={{ marginBottom: 32 }}>
-        {briefing.message}
+      <div className="casefile">
+        <div className="stamp">Active Incident</div>
+        <div className="incident-code">CASE // SYNTHETIC-DAWN-07 · SUBJECT: VESSEL-7 · NODE: {status.network}</div>
+        <h1>GHOST LEDGER</h1>
+        <p className="prose">{briefing.message}</p>
+        <PulseTrace seed={status.tipHash} anomalous={status.mempoolSize > 0} />
       </div>
 
+      <div className="section-title">Node Vitals</div>
       <div className="grid grid-4">
-        <div className="panel">
-          <div className="stat-label">Network</div>
-          <div className="stat-value">{status.network}</div>
-        </div>
-        <div className="panel">
+        <div className="readout nominal">
           <div className="stat-label">Block Height</div>
-          <div className="stat-value">{status.height}</div>
+          <div className="stat-value verified">{status.height}</div>
+          <div className="stat-sub">chain advancing normally</div>
         </div>
-        <div className="panel">
-          <div className="stat-label">Mempool</div>
-          <div className="stat-value">{status.mempoolSize} pending</div>
-        </div>
-        <div className="panel">
+        <div className="readout nominal">
           <div className="stat-label">Difficulty</div>
-          <div className="stat-value">{info.difficulty} bits</div>
+          <div className="stat-value">{info.difficulty}<span style={{ fontSize: 12, color: "var(--text-dim)" }}> bits</span></div>
+        </div>
+        <div className={`readout ${status.mempoolSize > 0 ? "anomalous" : "nominal"}`}>
+          <div className="stat-label">Mempool</div>
+          <div className={`stat-value ${status.mempoolSize > 0 ? "anomaly" : ""}`}>{status.mempoolSize}</div>
+          <div className="stat-sub">pending transaction(s)</div>
+        </div>
+        <div className="readout anomalous">
+          <div className="stat-label">Integrity Check</div>
+          <div className="stat-value anomaly">FAILED</div>
+          <div className="stat-sub">v2 fast-path unverified</div>
         </div>
       </div>
 
-      <div className="section-title">Treasury (drained target)</div>
-      <div className="panel grid grid-2">
-        <div>
-          <div className="stat-label">Address</div>
-          <a href={`/lookup?address=${briefing.treasuryAddress}`} className="hash">
-            {briefing.treasuryAddress}
-          </a>
+      <div className="section-title">Compromised Asset — Foundation Treasury</div>
+      <div className="panel raised" style={{ borderLeft: "3px solid var(--critical)" }}>
+        <div className="grid grid-2">
+          <div>
+            <div className="stat-label">Address</div>
+            <a href={`/lookup?address=${briefing.treasuryAddress}`} className="hash">
+              {briefing.treasuryAddress}
+            </a>
+          </div>
+          <div>
+            <div className="stat-label">Nominal Holdings</div>
+            <div className="stat-value critical">{formatSgk(briefing.treasuryAmount)} SGK</div>
+          </div>
         </div>
-        <div>
-          <div className="stat-label">Remaining Balance</div>
-          <div className="stat-value danger">{formatSgk(briefing.treasuryAmount)} SGK (nominal)</div>
+        <div className="muted" style={{ marginTop: 14 }}>
+          Balance reflects on-chain state only. On-chain state is exactly what VESSEL-7 exploited —
+          confirm what this figure actually means before assuming it's safe.
         </div>
       </div>
 
@@ -72,10 +86,12 @@ export default async function OverviewPage() {
         <div className="hash">{info.genesisHash}</div>
       </div>
 
-      <div className="section-title">Recent Blocks</div>
+      <div className="section-title">
+        Recent Ledger Activity <span className="count">last {blocks.length} blocks</span>
+      </div>
       <table>
         <thead>
-          <tr><th>Height</th><th>Hash</th><th>Txs</th></tr>
+          <tr><th>Height</th><th>Block Hash</th><th>Txs</th></tr>
         </thead>
         <tbody>
           {blocks.map((b) => (
