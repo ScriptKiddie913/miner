@@ -12,7 +12,7 @@ export default async function BlockDetailPage({ params }: { params: Promise<{ ha
 
   return (
     <div>
-      <div className="section-title">Block Record</div>
+      <div className="section-title">Block Header</div>
       <div className="panel grid grid-2">
         <div>
           <div className="stat-label">Hash</div>
@@ -32,13 +32,11 @@ export default async function BlockDetailPage({ params }: { params: Promise<{ ha
         </div>
       </div>
 
-      <div className="section-title">
-        Transactions <span className="count">{block.transactions.length}</span>
-      </div>
+      <div className="section-title">Transactions ({block.transactions.length})</div>
       {block.transactions.map((tx: any, i: number) => (
-        <div key={i} className="panel" style={{ marginBottom: 10 }}>
-          <div className="muted" style={{ marginBottom: 8 }}>
-            {Array.isArray(tx.inputs) && tx.inputs[0]?.coinbase ? "Coinbase (block reward)" : `${tx.inputs.length} input(s)`} →{" "}
+        <div key={i} className="panel" style={{ marginBottom: 12 }}>
+          <div className="muted">
+            {Array.isArray(tx.inputs) && tx.inputs[0]?.coinbase ? "Coinbase" : `${tx.inputs.length} input(s)`} →{" "}
             {tx.outputs.length} output(s)
           </div>
           {tx.outputs.map((o: any, j: number) => (

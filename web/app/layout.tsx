@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata = {
-  title: "GHOST LEDGER — Node Diagnostics",
-  description: "Synthetic Dawn series — live diagnostics for the compromised SagnikChain node",
+  title: "GHOST LEDGER — Compromised Node Monitor",
+  description: "Synthetic Dawn series — live telemetry for the compromised SagnikChain node",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -11,32 +11,23 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <body>
         <div className="shell">
-          <div className="sysbar">
-            <span><span className="dot" />LINK ACTIVE</span>
-            <span>SGK-TESTNET · NODE MONITOR v1</span>
-          </div>
-
           <header className="topbar">
             <a href="/" className="brand">
               GHOST<span className="accent">_LEDGER</span>
-              <span className="tag">Synthetic Dawn Series</span>
+              <span className="tag">// synthetic dawn</span>
             </a>
             <nav>
               <a href="/">Overview</a>
-              <a href="/blocks">Ledger</a>
-              <a href="/lookup">Console</a>
+              <a href="/blocks">Blocks</a>
+              <a href="/lookup">Lookup</a>
             </nav>
           </header>
-
           <div className="alertbar">
-            Node status: compromised — VESSEL-7 activity detected — telemetry only, do not trust balances at face value
+            NODE STATUS: COMPROMISED — VESSEL-7 ACTIVITY DETECTED — MONITORING ONLY, DO NOT TRUST
           </div>
-
           <main>{children}</main>
-
           <footer>
-            <span>SYNTHETIC DAWN · GHOST LEDGER</span>
-            <span>flag format <code>syndwn{"{"}...{"}"}</code></span>
+            SYNTHETIC DAWN series · GHOST LEDGER · flag format <code>syndwn{"{"}...{"}"}</code>
           </footer>
         </div>
       </body>
